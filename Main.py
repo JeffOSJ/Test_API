@@ -26,7 +26,6 @@ engine = create_engine("sqlite:///dmcard.db", connect_args={"check_same_thread":
 Base = declarative_base()
 SessionLocal = sessionmaker(bind=engine)
 
-
 class Cartao(Base):
     __tablename__ = "cartoes"
     id = Column(Integer, primary_key=True, index=True)
