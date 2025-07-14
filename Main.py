@@ -8,6 +8,11 @@ Original file is located at
 
 !pip install fastapi uvicorn nest-asyncio pyngrok sqlalchemy
 
+
+from pyngrok import ngrok
+import nest_asyncio
+import uvicorn
+import threading
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import random
@@ -16,13 +21,12 @@ from sqlalchemy import create_engine, Column, Integer, String, Float, Boolean, D
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-# Cria o app e o banco
 app = FastAPI()
 engine = create_engine("sqlite:///dmcard.db", connect_args={"check_same_thread": False})
 Base = declarative_base()
 SessionLocal = sessionmaker(bind=engine)
 
-# Modelo da tabela no banco
+
 class Cartao(Base):
     __tablename__ = "cartoes"
     id = Column(Integer, primary_key=True, index=True)
@@ -34,10 +38,10 @@ class Cartao(Base):
     limite = Column(Float)
     data = Column(DateTime, default=datetime.utcnow)
 
-# Cria a tabela
+
 Base.metadata.create_all(bind=engine)
 
-# Modelo de entrada
+
 class Solicitacao(BaseModel):
     nome: str
     cpf: str
@@ -52,7 +56,7 @@ def listar_cartoes():
 def solicitar_cartao(dados: Solicitacao):
     db = SessionLocal()
 
-    # Impede duplicação de CPF
+
     if db.query(Cartao).filter(Cartao.cpf == dados.cpf).first():
         raise HTTPException(status_code=400, detail="CPF já cadastrado.")
 
@@ -97,20 +101,14 @@ def deletar_cartao(cpf: str):
     db.commit()
     return {"mensagem": f"Solicitação com CPF {cpf} removida."}
 
-from pyngrok import ngrok
-import nest_asyncio
-import uvicorn
-import threading
-
-# Ativa o suporte a async no Colab
 nest_asyncio.apply()
 
-# Cole seu token aqui:
+
 ngrok.set_auth_token("2zqmFBOpaNa2xQPFlQWJpZiNfq3_3x8Znee79FucEw6HBeUiy")
 
-# Conecta a porta 8000 (onde o servidor rodará)
+
 public_url = ngrok.connect(8000)
-print("🔗 Sua API pública:", public_url)
+print("Sua API pública:", public_url)
 
 
 
